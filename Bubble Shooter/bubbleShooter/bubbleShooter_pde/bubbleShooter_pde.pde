@@ -35,7 +35,7 @@ void setup()
 }
 
 void draw() {
-  background(#073b4c);  // set the background color
+  background(#f8edeb);  // set the background color
 
   noFill();
   strokeWeight(15);  // set the border thickness
@@ -47,24 +47,55 @@ void draw() {
       bubble(bubbleGrid[x][y], (x-7)*25, (y-7)*25, 1);  // draw each bubble on the grid
     }
   }
-
-  // draw the aiming dotted line
-  strokeWeight(10);  // set the thickness of the line
-  float distance = dist(centerX, centerY, mouseX, mouseY);  // calculate distance from center to mouse
-  int numberOfPoints = (int)distance / 15;  // determine how many points to draw on the line
-  
-  // set the color of the line based on the bubble available to shoot
-  stroke(colors[bubblesAvailable[0]][0], colors[bubblesAvailable[0]][1], colors[bubblesAvailable[0]][2], 100);
-  
-  // draw the dotted line by creating points between the center and mouse position
-  for (int i = 0; i <= numberOfPoints; i++) {
-    float x = lerp(centerX + 200, mouseX, i / (float)numberOfPoints);  // calculate x position
-    float y = lerp(centerY + 200, mouseY, i / (float)numberOfPoints);  // calculate y position
-    point(x, y);  // draw the point at (x, y)
-  }
-
+  drawAimingLine();
   bubblesToShoot();  // call function to show bubble ready to shoot
 }
+
+void drawAimingLine() {
+    // Starting position
+    float x = centerX+200;
+    float y = centerY+200;
+    
+    // Calculate the angle towards the mouse
+    float angle = atan2(mouseY - y, mouseX - x);
+    
+    // Direction vector components
+    float dx = cos(angle);
+    float dy = sin(angle);
+    
+    // Define boundaries based on your screen size and any margins
+    float leftBoundary = 0;
+    float rightBoundary = width;
+    float topBoundary = 242;
+    
+    // Simulation parameters
+    int maxSteps = 2000;    // Maximum number of points to draw
+    float stepSize = 15;     // Distance between each point
+    
+    // Set the color of the line based on the bubble available to shoot
+    stroke(colors[bubblesAvailable[0]][0]-20, colors[bubblesAvailable[0]][1]-20, colors[bubblesAvailable[0]][2]-20, 200);
+    strokeWeight(10);
+    
+    for (int i = 0; i < maxSteps; i++) {
+        // Move to the next position
+        x += dx * stepSize;
+        y += dy * stepSize;
+        
+        // Check for collision with left or right walls
+        if (x <= leftBoundary || x >= rightBoundary) {
+            dx *= -1; // Reflect the x-component
+            x = constrain(x, leftBoundary, rightBoundary); // Ensure x stays within boundaries
+        }
+        
+        // stop drawing if the line reaches a topBoundary
+        if (y <= topBoundary) {
+          break;
+        }
+        point(x, y);
+    }
+}
+
+
 
 void bubblesToShoot() {
   bubble(bubblesAvailable[0], centerX, centerY, 2);  // draw the next bubble to shoot at the center
